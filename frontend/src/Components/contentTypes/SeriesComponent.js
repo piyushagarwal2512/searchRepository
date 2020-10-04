@@ -5,6 +5,7 @@ import { bindActionCreators } from "redux";
  import * as _ from "lodash";
  import actionTypes from "../../store/Store/actions"
  import {Card} from "../../Common/index"
+ import {withRouter} from "react-router-dom"
 
  class SeriesComponent extends Component {
 
@@ -32,14 +33,20 @@ import { bindActionCreators } from "redux";
     }
     componentWillUnmount()
     {
-        this.props.clearDispatchAction(actionTypes.FETCH_MOVIE)
+        this.props.clearDispatchAction(actionTypes.FETCH_SERIES)
+    }
+
+    cardClickEvent=(event)=>
+    {
+               let imdbId=event.target.getAttribute('attrid');
+              this.props.history.push(`/series/${imdbId}`)
     }
 
     render() {
         return (
-            <div style={{display:"flex",flexWrap:"wrap",margin:"10 10 10 10",marginLeft:"5%",marginRight:"5%"}}>
+            <div  style={{display:"flex",flexWrap:"wrap",margin:"10 10 10 10",marginLeft:"5%",marginRight:"5%"}}>
                 {this.state.seriesData.map((ele)=>{
-                    return <Card Title={ele.Title} Year={ele.Year} Poster={ele.Poster} Type={ele.Type}/>
+                    return <Card key={ele.imdbID} data={ele} clickHandler={this.cardClickEvent}/>
                 })}
             </div>
         )
@@ -47,7 +54,6 @@ import { bindActionCreators } from "redux";
 }
 
 function mapStateToProps(state){
-      //console.log(state);
       return {
           componentData:state.seriesData,
           componentDataCount:state.dataCount,
@@ -66,4 +72,4 @@ function mapActionToProps(dispatch){
       );
 }
 
-export default connect(mapStateToProps,mapActionToProps)(SeriesComponent)
+export default withRouter(connect(mapStateToProps,mapActionToProps)(SeriesComponent))

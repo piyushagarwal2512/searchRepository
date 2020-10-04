@@ -1,22 +1,22 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import clsx from 'clsx';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardMedia from '@material-ui/core/CardMedia';
-import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
-import Collapse from '@material-ui/core/Collapse';
 import Avatar from '@material-ui/core/Avatar';
 import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
 import { red } from '@material-ui/core/colors';
 import FavoriteIcon from '@material-ui/icons/Favorite';
-import ShareIcon from '@material-ui/icons/Share';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
+import InfoIcon from '@material-ui/icons/Info';
+import DeleteIcon from '@material-ui/icons/Delete';
+import {withStyles} from '@material-ui/core/styles';
+import {connect} from "react-redux"
+import {bindActionCreators} from "redux"
+import {addToContent,deleteFromContent,actionTypes,clearAction} from "../store/Store/actions"
+import {withRouter} from "react-router-dom"
+import {Tooltip} from "@material-ui/core"
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = (theme) => ({
   root: {
     maxWidth: 300,
     minWidth: 300,
@@ -39,91 +39,145 @@ const useStyles = makeStyles((theme) => ({
   avatar: {
     backgroundColor: red[500],
   },
-}));
+});
 
-export default function RecipeReviewCard(props) {
-  const classes = useStyles();
-//   const [expanded, setExpanded] = React.useState(false);
+ class CardElement extends React.Component {
 
-//   const handleExpandClick = () => {
-//     setExpanded(!expanded);
-//   };
 
+  constructor(props) {
+    super(props)
+  
+    this.state = {
+      
+    }
+  }
+  
+
+actionClick=(event,data)=>{
+
+if(event.target.tagName!=="DIV")
+{
+  let element=event.target;
+  if(element && element.tagName!=="BUTTON")
+  {
+    element=element.closest(`button`)
+  }
+
+  if(element.getAttribute('aria-label')==="add to favorites")
+  {
+    console.log("ji")
+    let contentData=window.localStorage.getItem("myContent");
+    if(contentData)
+    {
+      contentData=JSON.parse(contentData);
+      let index=contentData.findIndex((ele)=>ele.Title===data.Title);
+      if(index<0)
+      {
+        contentData.push(data)
+        window.localStorage.setItem("myContent",JSON.stringify(contentData));
+      }
+    
+    }
+    else{
+      let d=[]
+      d.push(data);
+      window.localStorage.setItem("myContent",JSON.stringify(d));
+    }
+   // this.props.addContentAction(data);
+  }
+  else if(element.getAttribute('aria-label')==="delete item")
+  {
+    let contentData=window.localStorage.getItem("myContent");
+    if(contentData)
+    {
+      contentData=JSON.parse(contentData);
+      let index=contentData.findIndex((ele)=>ele.Title===data.Title);
+      contentData.splice(index,1);
+      if(contentData.length===0)
+      {
+        window.localStorage.removeItem("myContent")
+      }
+      else{
+      window.localStorage.setItem("myContent",JSON.stringify(contentData));
+      }
+
+      this.props.history.push(`/me/content`)
+    }
+
+  }else{
+          this.props.history.push(`/info/${data.imdbID}`)
+  }
+
+}
+  
+}
+
+handleClose=()=>{
+  this.setState({open:false})
+  this.props.clearDispatchAction(actionTypes.FETCH_SINGLE_DATA)
+}
+
+
+render(){
+  const {classes}=this.props
   return (
-    <Card className={classes.root}>
+    <div>
+   
+    <Card className={classes.root} attrid={this.props.data.imdbID} seasonid={this.props.seasonid}>
       <CardHeader
         avatar={
-          <Avatar aria-label="contentType" className={classes.avatar}>
-            {props.Type==="movie" ?"M":(props.Type==="series" ?"S":(props.Type==="episode" ?"E":""))}
+          <Avatar aria-label="contentType" className={classes.avatar}  attrid={this.props.data.imdbID} seasonid={this.props.seasonid}>
+            {this.props.data.Type==="movie" ?"M":(this.props.data.Type==="series" ?"S":(this.props.data.Type==="episode" ?"E":""))}
           </Avatar>
         }
-        // action={
-        //   <IconButton aria-label="settings">
-        //     <MoreVertIcon />
-        //   </IconButton>
-        // }
-        title={props.Title}
-        subheader={props.Year}
+
+        title={this.props.data.Title}
+        subheader={this.props.data.Year}
+        attrid={this.props.data.imdbID}
+        seasonid={this.props.seasonid}
       />
       <CardMedia
         className={classes.media}
-        image={props.Poster}
-        title={props.Title}
-        
+        image={this.props.data.Poster}
+        title={this.props.data.Title}
+        attrid={this.props.data.imdbID}
+        seasonid={this.props.seasonid}
+        onClick={(this.props.data.Type==="series")?(event)=>this.props.clickHandler(event):null}
       />
 
-      
-      {/* <CardContent>
-        <Typography variant="body2" color="textSecondary" component="p">
-          This impressive paella is a perfect party dish and a fun meal to cook together with your
-          guests. Add 1 cup of frozen peas along with the mussels, if you like.
-        </Typography>
-      </CardContent> */}
-      <CardActions disableSpacing>
-        <IconButton aria-label="add to favorites">
+      <CardActions disableSpacing attrid={this.props.data.imdbID} seasonid={this.props.seasonid} onClick={(event)=>this.actionClick(event,this.props.data)}>
+       {!this.props.componentType && <Tooltip title="Add To Favorites"><IconButton aria-label="add to favorites"  attrid={this.props.data.imdbID} seasonid={this.props.seasonid} onmo >
           <FavoriteIcon />
         </IconButton>
-        {/* <IconButton aria-label="share">
-          <ShareIcon />
+        </Tooltip>
+       }
+       <Tooltip title="View Info">
+        <IconButton aria-label="view info"  attrid={this.props.data.imdbID} seasonid={this.props.seasonid} >
+          <InfoIcon />
         </IconButton>
-        <IconButton
-          className={clsx(classes.expand, {
-            [classes.expandOpen]: expanded,
-          })}
-          onClick={handleExpandClick}
-          aria-expanded={expanded}
-          aria-label="show more"
-        >
-          <ExpandMoreIcon />
-        </IconButton> */}
+        </Tooltip>
+        {this.props.componentType && this.props.componentType==="mycontent" && <Tooltip title="Delete Item"><IconButton aria-label="delete item"  attrid={this.props.data.imdbID} seasonid={this.props.seasonid } >
+          <DeleteIcon />
+        </IconButton>
+        </Tooltip>
+          }
       </CardActions>
-      {/* <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <CardContent>
-          <Typography paragraph>Method:</Typography>
-          <Typography paragraph>
-            Heat 1/2 cup of the broth in a pot until simmering, add saffron and set aside for 10
-            minutes.
-          </Typography>
-          <Typography paragraph>
-            Heat oil in a (14- to 16-inch) paella pan or a large, deep skillet over medium-high
-            heat. Add chicken, shrimp and chorizo, and cook, stirring occasionally until lightly
-            browned, 6 to 8 minutes. Transfer shrimp to a large plate and set aside, leaving chicken
-            and chorizo in the pan. Add pimentón, bay leaves, garlic, tomatoes, onion, salt and
-            pepper, and cook, stirring often until thickened and fragrant, about 10 minutes. Add
-            saffron broth and remaining 4 1/2 cups chicken broth; bring to a boil.
-          </Typography>
-          <Typography paragraph>
-            Add rice and stir very gently to distribute. Top with artichokes and peppers, and cook
-            without stirring, until most of the liquid is absorbed, 15 to 18 minutes. Reduce heat to
-            medium-low, add reserved shrimp and mussels, tucking them down into the rice, and cook
-            again without stirring, until mussels have opened and rice is just tender, 5 to 7
-            minutes more. (Discard any mussels that don’t open.)
-          </Typography>
-          <Typography>
-            Set aside off of the heat to let rest for 10 minutes, and then serve.
-          </Typography>
-        </CardContent>
-      </Collapse> */}
+    
     </Card>
+    </div>
+  );
+    }
+}
+
+const mapActionToProps=(dispatch)=>{
+   return bindActionCreators(
+    {
+      addContentAction: addToContent,
+      deleteContentAction:deleteFromContent,
+      clearDispatchAction:clearAction
+    },
+    dispatch
   );
 }
+
+export default withRouter(withStyles(useStyles)(connect(null,mapActionToProps)(CardElement)))

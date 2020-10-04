@@ -1,17 +1,15 @@
-import actionTypes from "./actions"
-
+import actionTypes, { deleteFromContent } from "./actions"
 
 let initialState={
 
-
-movieData:[],
-seriesData:[],
-seasonsData:[],
-episodesData:[],
-singleEpisodeData:null,
-singleMovieData:null,
-hasError:false,
-dataCount:0
+    movieData:[],
+    seriesData:[],
+    seasonsData:[],
+    episodesData:[],
+    singleContentData:[],
+    hasError:false,
+    dataCount:0,
+    myContentData:[]
 }
 
 
@@ -42,16 +40,8 @@ dataCount:0
             movieData:action.payload && action.payload['Search']?action.payload['Search']:[],
             dataCount:action.payload && action.payload['totalResults']?parseInt(action.payload['totalResults']):0,
             hasError:action.payload && action.payload['Response'] && action.payload['Response'] === "False"
-
-
         }
-        case actionTypes.FETCH_SINGLE_MOVIE:
-        return {
-            ...state,
-            singleMovieData:action.payload ?action.payload:{},
-            dataCount:action.payload && action.payload['totalResults']?parseInt(action.payload['totalResults']):1,
-            hasError:action.payload && action.payload['Response'] && action.payload['Response'] === "False"
-        }
+
         case actionTypes.FETCH_SERIES:
         return {
             ...state,
@@ -71,25 +61,42 @@ dataCount:0
 
         }
         case actionTypes.FETCH_EPISODE:
+            modifyEpisodes(action.payload)
         return {
             ...state,
             episodesData:action.payload && action.payload['Episodes']?action.payload['Episodes']:[],
             dataCount:action.payload && action.payload['totalResults']?parseInt(action.payload['totalResults']):0,
             hasError:action.payload && action.payload['Response'] && action.payload['Response'] === "False"
         }
-        case actionTypes.FETCH_SINGLE_EPISODE:
+        case actionTypes.FETCH_SINGLE_DATA:
         return {
             ...state,
-            singleEpisodeData:action.payload ?action.payload:{},
+            singleContentData:action.payload ?action.payload:{},
             dataCount:action.payload && action.payload['totalResults']?parseInt(action.payload['totalResults']):1,
             hasError:action.payload && action.payload['Response'] && action.payload['Response'] === "False"
 
+        }
+
+        case actionTypes.ADD_MY_CONTENT:
+            let contentData=[...state.myContentData]
+            addContent(contentData,action.payload)
+        return {
+            ...state,
+            myContentData:contentData,
+        }
+        case actionTypes.DELETE_MY_CONTENT:
+            let cdata=[...state.myContentData]
+            deleteContent(cdata,action.payload)
+        return {
+            ...state,
+            myContentData:cdata,
         }
          default:
             return state
     }
 }
 
+//filter data
 const filterData=(movieData,seriesData,episodeData,payload)=>{
 
     if(payload && payload['Search'] && payload['Search'].length)
@@ -116,6 +123,7 @@ const filterData=(movieData,seriesData,episodeData,payload)=>{
 
 }
 
+//create season data
 const createSeasons=(seasonDta,payload)=>{
 
 if(payload['Response']==="True")
@@ -129,6 +137,7 @@ if(payload['Response']==="True")
         obj.Type=payload.Type;
         obj.Year=payload.Year;
         obj.Poster=payload.Poster;
+        obj.imdbID=payload.imdbID;
 
         seasonDta.push(obj)
 
@@ -136,9 +145,46 @@ if(payload['Response']==="True")
     
 }
 
+}
 
+
+//modify episode content
+const modifyEpisodes=(payload)=>{
+
+    if(payload['Response']==="True")
+    {
+        let episodeData=payload["Episodes"];
+    
+        for(var i=0;i<episodeData.length;i++)
+        {
+            episodeData[i].Title=`${episodeData[i].Title} (Episode ${i+1})`;
+            episodeData[i].Type="episode";
+        }   
+    }
 
 }
+
+
+//delete content
+const deleteContent=(contentData,payload)=>
+{
+    let index=contentData.findIndex((ele)=>ele.Title===payload.Title);
+    if(index>=0)
+    {
+       contentData.splice(index,1)
+    }
+}
+
+//add content
+const addContent=(contentData,payload)=>
+{
+    let index=contentData.findIndex((ele)=>ele.Title===payload.Title);
+    if(index<0)
+    {
+       contentData.push(payload)
+    }
+}
+
 
 export default reducer
 

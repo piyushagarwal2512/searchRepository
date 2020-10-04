@@ -6,6 +6,8 @@ import { bindActionCreators } from "redux";
  import actionTypes from "../../store/Store/actions"
  import {Card} from "../../Common/index"
  import {withRouter} from "react-router-dom"
+import LoadingComponent from '../../Common/LoadingComponent';
+
 
  class EpisodeComponent extends Component {
 
@@ -21,9 +23,12 @@ import { bindActionCreators } from "redux";
 
     componentDidMount()
     {
-        let imdbId=this.props.match.params.imdbId;
-        let season=this.props.match.params.season;
-        this.props.getData(imdbId,season)  
+        if(this.props.match.params.imdbId && this.props.match.params.seasonId){
+            let imdbId=this.props.match.params.imdbId;
+            let seasonId=this.props.match.params.seasonId;
+            let imagePath=this.props.location.state.imagePath;
+            this.props.getData(imdbId,seasonId,imagePath)  
+        }
     }
 
     componentDidUpdate(prevProps,prevState)
@@ -31,6 +36,10 @@ import { bindActionCreators } from "redux";
         if(!_.isEqual(prevProps.componentData,this.props.componentData))
         {
             this.setState({episodeData:this.props.componentData,episodeDataCount:this.props.componentDataCount})
+        }
+        if((this.props.match.params.imdbId!==this.props.match.params.imdbId)||(this.props.match.params.seasonId!==this.props.match.params.seasonId))
+        {
+            this.props.getData(this.props.match.params.imdbId,this.props.match.params.seasonId)
         }
     }
     componentWillUnmount()
@@ -40,10 +49,16 @@ import { bindActionCreators } from "redux";
 
     render() {
         return (
-            <div style={{display:"flex",flexWrap:"wrap",margin:"10 10 10 10",marginLeft:"5%",marginRight:"5%"}}>
-                {this.state.seasonData.map((ele)=>{
-                    return <Card Title={ele.Title} Year={ele.Year} Poster={ele.Poster} Type={ele.Type}/>
-                })}
+            <div style={{display:"flex",flexWrap:"wrap",margin:"3% 3% 3% 3%"}}>
+                {
+          (!this.state.episodeData || this.state.episodeData.length ===0)? <LoadingComponent/>:
+                
+                    this.state.episodeData.map((ele)=>{
+                        return <Card key={ele.imdbID} data={ele}/>
+                    })
+
+                    } 
+
             </div>
         )
     }
