@@ -50,6 +50,7 @@ import SeriesComponent from './contentTypes/SeriesComponent';
 }
 
 
+
 function mapActionToProps(dispatch){
 
     return bindActionCreators(
