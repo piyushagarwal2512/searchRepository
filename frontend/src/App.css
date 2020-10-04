@@ -36,3 +36,11 @@
     transform: rotate(360deg);
   }
 }
+
+
+.main-card-div{
+  display: flex;
+  flex-wrap: wrap;
+  margin: 3% 3% 3% 3%;
+
+}

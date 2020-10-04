@@ -38,9 +38,9 @@ import { bindActionCreators } from "redux";
 
     render() {
         return (
-            <div style={{display:"flex",flexWrap:"wrap",margin:"10 10 10 10",marginLeft:"5%",marginRight:"5%"}}>
+            <div className="main-card-div">
                 {this.state.movieData.map((ele)=>{
-                    return <Card Title={ele.Title} Year={ele.Year} Poster={ele.Poster} Type={ele.Type}/>
+                    return <Card key={ele.imdbID} data={ele}/>
                 })}
             </div>
         )
@@ -48,7 +48,7 @@ import { bindActionCreators } from "redux";
 }
 
 function mapStateToProps(state){
-    //  console.log(state);
+
       return {
           componentData:state.movieData,
           componentDataCount:state.dataCount,

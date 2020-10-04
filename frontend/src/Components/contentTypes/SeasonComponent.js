@@ -6,6 +6,8 @@ import { bindActionCreators } from "redux";
  import actionTypes from "../../store/Store/actions"
  import {Card} from "../../Common/index"
  import {withRouter} from "react-router-dom"
+import LoadingComponent from '../../Common/LoadingComponent';
+import NoDataComponent from '../../Common/NoDataComponent';
 
  class SeasonComponent extends Component {
 
@@ -14,7 +16,8 @@ import { bindActionCreators } from "redux";
     
         this.state = {
              seasonData:[],
-             seasonDataCount:0
+             seasonDataCount:0,
+             imagePath:""
         }
     }
     
@@ -30,19 +33,31 @@ import { bindActionCreators } from "redux";
     {
         if(!_.isEqual(prevProps.componentData,this.props.componentData))
         {
-            this.setState({seasonData:this.props.componentData,seasonDataCount:this.props.componentDataCount})
+            this.setState({seasonData:this.props.componentData,seasonDataCount:this.props.componentDataCount,imagePath:this.props.componentData &&this.props.componentData.length && this.props.componentData[0].Poster })
+        }
+        if(prevProps.match.params.imdbId!==this.props.match.params.imdbId)
+        {
+            this.props.getData(this.props.match.params.imdbId);
         }
     }
     componentWillUnmount()
     {
-        this.props.clearDispatchAction(actionTypes.FETCH_MOVIE)
+        this.props.clearDispatchAction(actionTypes.FETCH_SEASONS)
+    }
+
+    cardClickEvent=(event)=>
+    {
+               let imdbId=event.target.getAttribute('attrid');
+               let seasonId=event.target.getAttribute('seasonid');
+              this.props.history.push({pathname:`/series/episodes/${imdbId}/${seasonId}`,state:{imagePath:this.state.imagePath}})
+
     }
 
     render() {
         return (
-            <div style={{display:"flex",flexWrap:"wrap",margin:"10 10 10 10",marginLeft:"5%",marginRight:"5%"}}>
-                {this.state.seasonData.map((ele)=>{
-                    return <Card Title={ele.Title} Year={ele.Year} Poster={ele.Poster} Type={ele.Type}/>
+            <div className="main-card-div">
+                {this.props.hasError?<NoDataComponent/>:(!this.state.seasonData || this.state.seasonData.length===0)?<LoadingComponent/>:this.state.seasonData.map((ele,index)=>{
+                    return <Card key={ele.imdbID + index} data={ele} seasonid={index+1} clickHandler={this.cardClickEvent}/>
                 })}
             </div>
         )
@@ -50,7 +65,7 @@ import { bindActionCreators } from "redux";
 }
 
 function mapStateToProps(state){
-      //console.log(state);
+
       return {
           componentData:state.seasonsData,
           componentDataCount:state.dataCount,

@@ -6,7 +6,9 @@ import IconButton from "@material-ui/core/IconButton";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import { bindActionCreators } from "redux";
 import {connect} from "react-redux"
-import {clearAction,getData} from "../store/Store/actions"
+import {clearAction,getData,getDataByType} from "../store/Store/actions"
+import {withRouter} from "react-router-dom"
+import {Link} from "@material-ui/core"
 
 class SearchComponent extends Component {
 
@@ -21,7 +23,6 @@ class SearchComponent extends Component {
     }
 
     handleDropdownChange = (event)=>{
-             // console.log(event.target.value)
              let placeholder="";
              if(event.target.value==="all")
              {
@@ -44,8 +45,17 @@ class SearchComponent extends Component {
 
     searchText=()=>{
 
-        if(this.state.searchValue){
-            this.props.fetchDataAction(this.state.searchValue)
+        const {searchValue,filterValue}=this.state
+
+        if(searchValue){
+            
+            if(filterValue!=="all")
+            {
+                this.props.history.push(`/search/${filterValue}/${searchValue}}`)
+            }else
+            {
+                this.props.history.push(`/${searchValue}`)
+            }
         }
         else
         {
@@ -60,7 +70,7 @@ class SearchComponent extends Component {
     render() {
         const {filterValue,placeholder,searchValue}=this.state
         return (
-            <div>
+            <div style={{marginTop:"2%"}}>
                 <Select
                     native
                     value={filterValue}
@@ -86,6 +96,7 @@ class SearchComponent extends Component {
                     )
                     }}
                 />
+                <Link href="/me/content" style={{marginLeft:"1%"}}>My Content</Link>
 
             </div>
         )
@@ -97,10 +108,10 @@ const mapActionToProps=(dispatch)=>{
     return bindActionCreators(
         {
           clearDispatchAction: clearAction,
-          fetchDataAction:getData
+          fetchDataAction:getData,
         },
         dispatch
       );
 }
 
-export default connect(null,mapActionToProps)(SearchComponent)
+export default withRouter(connect(null,mapActionToProps)(SearchComponent))
